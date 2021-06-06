@@ -2,8 +2,10 @@ package scr;
 
 import java.awt.Graphics;
 import java.awt.Color;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
 
-public class Gun {
+public class Gun implements Runnable {
     private double xVelocity, x, GRAVITY = 0.94;
     private boolean left, right;
     private int y;
@@ -25,9 +27,15 @@ public class Gun {
         return y;
     }
 
+    public double getX() {
+        return x;
+    }
+
     public void draw(Graphics g) {
-        g.setColor(Color.red);
-        g.fillRect((int) x, y, 60, 20);
+        g.setColor(Color.black);
+        g.fillRect((int) x - 30, y, 60, 20);
+        // testImage = Imageloader.loadImage("2020100813003225511.png");
+
     }
 
     public void move() {
@@ -46,10 +54,10 @@ public class Gun {
         }
 
         x += xVelocity;
-        if (x <= 0) {
-            x = 0;
-        } else if (x >= 580) {
-            x = 580;
+        if (x <= 30) {
+            x = 30;
+        } else if (x >= 610) {
+            x = 610;
         }
     }
 
@@ -60,4 +68,5 @@ public class Gun {
     public void setRight(boolean right) {
         this.right = right;
     }
+
 }

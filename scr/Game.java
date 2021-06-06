@@ -3,44 +3,57 @@ package scr;
 import java.awt.Graphics;
 import java.awt.image.BufferStrategy;
 import java.awt.Color;
-import java.awt.image.BufferedImage;
 import javax.swing.JFrame;
-import java.awt.Image;
 import java.awt.event.*;
 import java.util.Random;
 
-public class Game implements Runnable, KeyListener {
+public class Game implements Runnable, KeyListener, MouseListener, MouseMotionListener {
 
     private Display display;
-    private Thread thread;
-    private JFrame frame;
+    private Thread thread, gunThread;
     private Gun gun;
     private Random rand = new Random();
     private boolean running = false;
-    private int width, height;
+    private int width, height, randomarr[];
     private String title;
     private BufferStrategy BFS;
     private Graphics graphics;
     private Ball balls[] = new Ball[8];
     private Thread t[] = new Thread[8];
+    private BulletController bullet;
 
     Game(String title, int width, int height) {
         this.title = title;
         this.width = width;
         this.height = height;
+
     }
 
     public void initialize() {
         display = new Display(title, width, height);
-        frame = new JFrame();
-        display.frame.addKeyListener(this);
-        // testImage = Imageloader.loadImage("2020100813003225511.png");
-        for (int i = 0; i < 8; i++)
+
+        display.getFrame().addMouseListener(this);
+        display.getFrame().addMouseMotionListener(this);
+        display.getFrame().addKeyListener(this);
+        display.getCanvas().addKeyListener(this);
+        display.getCanvas().addMouseListener(this);
+        display.getCanvas().addMouseMotionListener(this);
+
+        randomarr = new int[8];
+        for (int i = 0; i < 8; i++) {
             balls[i] = new Ball();
+            randomarr[i] = rand.nextInt(4);
+        }
         gun = new Gun();
+        gunThread = new Thread(gun);
+        gunThread.start();
+        bullet = new BulletController(balls);
+
     }
 
     public void tick() {
+        bullet.tick();
+        gun.move();
     }
 
     public void render() {
@@ -53,16 +66,17 @@ public class Game implements Runnable, KeyListener {
         graphics = BFS.getDrawGraphics();
         graphics.clearRect(0, 0, width, height);
         // Draw
-        // graphics.setColor(Color.red);
-        // graphics.fillRect(10, 50, 50, 70);
         for (int i = 0; i < 8; i++) {
-            balls[i].draw(3, graphics);
+            balls[i].draw(randomarr[i], graphics);
             t[i] = new Thread(balls[i]);
             t[i].start();
         }
         gun.draw(graphics);
+        graphics.setColor(Color.pink);
+        graphics.fillRect(mouseY, mouseX, 10, 10);
+        bullet.render(graphics);
         try {
-            Thread.sleep(10);
+            Thread.sleep(12);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -73,9 +87,8 @@ public class Game implements Runnable, KeyListener {
     public void run() {
         initialize();
         while (running) {
-            tick();
             render();
-            gun.move();
+            tick();
         }
         stop();
     }
@@ -119,6 +132,48 @@ public class Game implements Runnable, KeyListener {
             gun.setRight(false);
         } else if (e.getKeyCode() == KeyEvent.VK_LEFT) {
             gun.setLeft(false);
+        } else if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+            bullet.addBullet(new Bullet(gun.getX(), gun.getY()));
         }
+    }
+
+    @Override
+    public void mouseDragged(MouseEvent e) {
+
+    }
+
+    int mouseX, mouseY;
+
+    @Override
+    public void mouseMoved(MouseEvent e) {
+        mouseX = e.getY();
+        mouseY = e.getX();
+        graphics.setColor(Color.pink);
+        graphics.fillRect(mouseY, mouseX, 10, 10);
+        // System.out.println(e.getY());
+        // System.out.println(e.getX());
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        bullet.addBullet(new Bullet(gun.getX(), gun.getY()));
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
     }
 }

@@ -10,8 +10,8 @@ public class Ball implements Runnable {
     private int weight;
 
     public Ball() {
-        xVelocity = (double) rand.nextInt(3) + 2;
-        yVelocity = (double) rand.nextInt(3) + 2;
+        xVelocity = (double) rand.nextInt(3) + 1;
+        yVelocity = (double) rand.nextInt(3) + 1;
         x = (double) rand.nextInt(200) + 20;
         y = (double) rand.nextInt(300) + 20;
     }
