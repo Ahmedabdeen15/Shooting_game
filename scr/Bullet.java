@@ -2,6 +2,7 @@ package scr;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Rectangle;
 
 public class Bullet {
     private double x, y;
@@ -11,7 +12,7 @@ public class Bullet {
         this.y = y;
     }
 
-    public void tick() {
+    public boolean tick() {
         // y=mx+b
         /*
          * double tempx = this.x, tempy = this.y, slope, b; yBullet = this.y; slope = y
@@ -26,7 +27,9 @@ public class Bullet {
          * // System.out.println("pew pew" + x + " , " + y);
          */
         y -= 5;
-
+        if (y == 0)
+            return true;
+        return false;
     }
 
     public void render(Graphics g) {
@@ -35,4 +38,7 @@ public class Bullet {
 
     }
 
+    public Rectangle getBounds() {
+        return new Rectangle((int) x, (int) y, 5, 10);
+    }
 }

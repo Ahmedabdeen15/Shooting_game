@@ -3,6 +3,7 @@ package scr;
 import java.awt.Graphics;
 import java.util.Random;
 import java.awt.Color;
+import java.awt.Rectangle;
 
 public class Ball implements Runnable {
     private double xVelocity, yVelocity, x, y;
@@ -21,6 +22,7 @@ public class Ball implements Runnable {
     }
 
     public void draw(int weight, Graphics g) {
+        this.weight = weight;
         setWeight(weight, g);
         g.fillOval((int) x - 10, (int) y - 10, 20, 20);
     }
@@ -60,5 +62,17 @@ public class Ball implements Runnable {
         }
         this.weight = weight;
 
+    }
+
+    public Rectangle getBounds() {
+        return new Rectangle((int) x - 10, (int) y - 10, 20, 20);
+    }
+
+    public int restartball() {
+        xVelocity = (double) rand.nextInt(3) + 1;
+        yVelocity = (double) rand.nextInt(3) + 1;
+        x = (double) rand.nextInt(200) + 20;
+        y = (double) rand.nextInt(300) + 20;
+        return weight;
     }
 }

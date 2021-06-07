@@ -3,7 +3,6 @@ package scr;
 import java.awt.Graphics;
 import java.awt.image.BufferStrategy;
 import java.awt.Color;
-import javax.swing.JFrame;
 import java.awt.event.*;
 import java.util.Random;
 
@@ -14,7 +13,7 @@ public class Game implements Runnable, KeyListener, MouseListener, MouseMotionLi
     private Gun gun;
     private Random rand = new Random();
     private boolean running = false;
-    private int width, height, randomarr[];
+    private int width, height, randomarr[], score = 0;
     private String title;
     private BufferStrategy BFS;
     private Graphics graphics;
@@ -43,6 +42,8 @@ public class Game implements Runnable, KeyListener, MouseListener, MouseMotionLi
         for (int i = 0; i < 8; i++) {
             balls[i] = new Ball();
             randomarr[i] = rand.nextInt(4);
+            t[i] = new Thread(balls[i]);
+            t[i].start();
         }
         gun = new Gun();
         gunThread = new Thread(gun);
@@ -51,9 +52,20 @@ public class Game implements Runnable, KeyListener, MouseListener, MouseMotionLi
 
     }
 
+    boolean bullet_finished = false;
+
     public void tick() {
-        bullet.tick();
-        gun.move();
+        if (bullet.getBullet_limit() > 0 || !bullet_finished) {
+            for (int i = 0; i < 8; i++) {
+                balls[i].move();
+            }
+            bullet_finished = bullet.tick();
+            gun.move();
+            score = bullet.getScore();
+        } else {
+            bullet.killAll();
+        }
+
     }
 
     public void render() {
@@ -66,15 +78,28 @@ public class Game implements Runnable, KeyListener, MouseListener, MouseMotionLi
         graphics = BFS.getDrawGraphics();
         graphics.clearRect(0, 0, width, height);
         // Draw
-        for (int i = 0; i < 8; i++) {
-            balls[i].draw(randomarr[i], graphics);
-            t[i] = new Thread(balls[i]);
-            t[i].start();
-        }
-        gun.draw(graphics);
         graphics.setColor(Color.pink);
-        graphics.fillRect(mouseY, mouseX, 10, 10);
-        bullet.render(graphics);
+        graphics.fillOval(mouseX, mouseY, 10, 10);
+        if (bullet.getBullet_limit() > 0 || !bullet_finished) {
+            for (int i = 0; i < 8; i++) {
+                balls[i].draw(randomarr[i], graphics);
+            }
+            gun.draw(graphics);
+            bullet.render(graphics);
+            graphics.setColor(Color.black);
+            graphics.drawString("Score= " + Integer.toString(score), 50, 30);
+            graphics.drawString("Bullet left= " + Integer.toString(bullet.getBullet_limit()), 550, 30);
+        } else {
+
+            graphics.setColor(Color.red);
+            graphics.drawString("GAME OVER!", 280, 190);
+
+            graphics.setColor(Color.black);
+            graphics.fillRect(280, 220, 80, 20);
+
+            graphics.setColor(Color.white);
+            graphics.drawString("Retry", 305, 235);
+        }
         try {
             Thread.sleep(12);
         } catch (InterruptedException e) {
@@ -114,8 +139,6 @@ public class Game implements Runnable, KeyListener, MouseListener, MouseMotionLi
     }
 
     public void keyTyped(KeyEvent e) {
-        // TODO Auto-generated method stub
-
     }
 
     public void keyPressed(KeyEvent e) {
@@ -133,7 +156,9 @@ public class Game implements Runnable, KeyListener, MouseListener, MouseMotionLi
         } else if (e.getKeyCode() == KeyEvent.VK_LEFT) {
             gun.setLeft(false);
         } else if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-            bullet.addBullet(new Bullet(gun.getX(), gun.getY()));
+            if (bullet.getBullet_limit() > 0) {
+                bullet.addBullet(new Bullet(gun.getX(), gun.getY()));
+            }
         }
     }
 
@@ -146,17 +171,27 @@ public class Game implements Runnable, KeyListener, MouseListener, MouseMotionLi
 
     @Override
     public void mouseMoved(MouseEvent e) {
-        mouseX = e.getY();
-        mouseY = e.getX();
+        mouseX = e.getX();
+        mouseY = e.getY();
         graphics.setColor(Color.pink);
-        graphics.fillRect(mouseY, mouseX, 10, 10);
+        graphics.fillOval(mouseX, mouseY, 10, 10);
+        // graphics.setColor(Color.black);
+        // graphics.drawString(Integer.toString(e.getX()) + "," +
+        // Integer.toString(e.getY()), 50, 30);
         // System.out.println(e.getY());
         // System.out.println(e.getX());
     }
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        bullet.addBullet(new Bullet(gun.getX(), gun.getY()));
+        if (bullet.getBullet_limit() > 0) {
+            bullet.addBullet(new Bullet(gun.getX(), gun.getY()));
+        } else {
+            if (mouseX > 280 && mouseX < 360 && mouseY > 220 && mouseY < 240) {
+                bullet.setScore(0);
+                bullet.setbullet_limit(10);
+            }
+        }
     }
 
     @Override
